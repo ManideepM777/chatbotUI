@@ -14,6 +14,17 @@ pipeline{
     }
 
     stages {
+        stage('Notify Build Start') {
+            steps {
+                script {
+                    slackSend (
+                        channel: '#devops',
+                        color: 'warning',
+                        message: "*Build Started:* Job ${env.JOB_NAME} \n build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
+                    )
+                }
+            }
+        }
         stage('Checkout from Git'){
             steps{
                 git branch: 'main', url: 'https://github.com/ManideepM777/chatbotUI.git'
@@ -90,9 +101,8 @@ post {
         slackSend (
             channel: '#devops',
             color: COLOR_MAP[currentBuild.currentResult],
-            message: """*${currentBuild.currentResult}:* Job ${env.JOB_NAME}
-                        build ${env.BUILD_NUMBER}
-                        More info at: ${env.BUILD_URL}"""
+            message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} \n build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
         )
     }
 }
+
