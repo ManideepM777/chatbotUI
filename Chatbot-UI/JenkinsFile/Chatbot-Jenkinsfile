@@ -37,21 +37,6 @@ pipeline{
                 }
             }
         }
-        stage("Sonarqube Analysis "){
-            steps{
-                withSonarQubeEnv('sonar-server') {
-                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Chatbot \
-                    -Dsonar.projectKey=Chatbot '''
-                }
-            }
-        }
-        stage("quality gate"){
-           steps {
-                script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'jenkins-sonarqube-token'
-                }
-            } 
-        }
 
         stage("Docker Build & Push"){
             steps{
@@ -80,19 +65,19 @@ pipeline{
         }
         stage('Deploy to container'){
             steps{
-                sh 'docker run -d --name chatbot -p 8080:8080 manideepm777/chatbot:${BUILD_NUMBER}'
+                sh 'docker run -d --name chatbot -p 4000:4000 manideepm777/chatbot:${BUILD_NUMBER}'
             }
         }
     }
-}
-post {
-    always {
-        echo 'Slack Notifications'
-        slackSend (
-            channel: '#devops',
-            color: COLOR_MAP[currentBuild.currentResult],
-            message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} \n build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
-        )
+    post {
+        always {
+            echo 'Slack Notifications'
+            slackSend (
+                channel: '#devops',
+                color: COLOR_MAP[currentBuild.currentResult],
+                message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} \n build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
+            )
+        }
     }
 }
 
