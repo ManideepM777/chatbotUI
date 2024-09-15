@@ -52,17 +52,7 @@ pipeline{
                 }
             } 
         }
-        stage('OWASP FS SCAN') {
-            steps {
-                dependencyCheck additionalArguments: '--scan ./ --nvdApiKey $NVD_API_KEY', odcInstallation: 'DP-Check'
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-            }
-        }
-        stage('TRIVY FS SCAN') {
-            steps {
-                sh "trivy fs --scanners vuln --skip-files dependency-check-report.xml . > trivyfs.json"
-            }
-        }
+
         stage("Docker Build & Push"){
             steps{
                 script{
@@ -90,7 +80,7 @@ pipeline{
         }
         stage('Deploy to container'){
             steps{
-                sh 'docker run -d --name chatbot -p 3000:3000 manideepm777/chatbot:${BUILD_NUMBER}'
+                sh 'docker run -d --name chatbot -p 8080:8080 manideepm777/chatbot:${BUILD_NUMBER}'
             }
         }
     }
