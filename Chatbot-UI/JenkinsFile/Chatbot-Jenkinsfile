@@ -1,3 +1,8 @@
+def COLOR_MAP = [
+    'FAILURE' : 'danger',
+    'SUCCESS' : 'good'
+]
+
 pipeline{
     agent any
     tools{
@@ -44,17 +49,19 @@ pipeline{
         }
         stage('TRIVY FS SCAN') {
             steps {
-                sh "trivy fs . > trivyfs.json"
+                sh "trivy fs --scanners vuln --skip-files dependency-check-report.xml . > trivyfs.json"
             }
         }
         stage("Docker Build & Push"){
             steps{
                 script{
-                   withCredentials([usernamePassword(credentialsId: 'docker', passwordVariable: 'PASS', usernameVariable: 'USER', toolName: 'docker')]) {
+                    dir('Chatbot-UI'){
+                        withCredentials([usernamePassword(credentialsId: 'docker', passwordVariable: 'PASS', usernameVariable: 'USER', toolName: 'docker')]) {
                                            sh "docker build -t chatbot ."
                                            sh "echo $PASS | docker login -u $USER --password-stdin"
                                            sh "docker tag chatbot manideepm777/chatbot:${BUILD_NUMBER}"
                                            sh "docker push manideepm777/chatbot:${BUILD_NUMBER}"
+                        }
                     }
                 }
             }
@@ -75,5 +82,15 @@ pipeline{
                 sh 'docker run -d --name chatbot -p 3000:3000 manideepm777/chatbot:${BUILD_NUMBER}'
             }
         }
+    }
+}
+post {
+    always {
+        echo 'Slack Notifications'
+        slackSend (
+            channel: '#devops',
+            color: COLOR_MAP[currentBuild.currentResult],
+            message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} \n build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}
+        )
     }
 }
