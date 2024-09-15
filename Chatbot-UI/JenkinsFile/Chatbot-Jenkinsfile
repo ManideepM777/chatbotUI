@@ -10,7 +10,7 @@ pipeline{
     stages {
         stage('Checkout from Git'){
             steps{
-                git branch: 'master', url: 'https://github.com/NotHarshhaa/DevOps-Projects/DevOps-Project-28/Chatbot-UI.git'
+                git branch: 'main', url: 'https://github.com/ManideepM777/chatbotUI.git'
             }
         }
         stage('Install Dependencies') {
@@ -29,13 +29,13 @@ pipeline{
         stage("quality gate"){
            steps {
                 script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token' 
+                    waitForQualityGate abortPipeline: false, credentialsId: 'jenkins-sonarqube-token'
                 }
             } 
         }
         stage('OWASP FS SCAN') {
             steps {
-                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
+                dependencyCheck additionalArguments: '--scan ./ --nvdApiKey $NVD_API_KEY', odcInstallation: 'DP-Check'
                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
@@ -47,17 +47,18 @@ pipeline{
         stage("Docker Build & Push"){
             steps{
                 script{
-                   withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
-                       sh "docker build -t chatbot ."
-                       sh "docker tag chatbot NotHarshhaa/chatbot:latest "
-                       sh "docker push NotHarshhaa/chatbot:latest "
+                   withCredentials([usernamePassword(credentialsId: 'docker', passwordVariable: 'PASS', usernameVariable: 'USER', toolName: 'docker')]) {
+                                           sh "docker build -t chatbot ."
+                                           sh "echo $PASS | docker login -u $USER --password-stdin"
+                                           sh "docker tag chatbot manideepm777/chatbot:${BUILD_NUMBER}"
+                                           sh "docker push manideepm777/chatbot:${BUILD_NUMBER}"
                     }
                 }
             }
         }
         stage("TRIVY"){
             steps{
-                sh "trivy image NotHarshhaa/chatbot:latest > trivy.json" 
+                sh "trivy image manideepm777/chatbot:${BUILD_NUMBER} > trivy.json"
             }
         }
         stage ("Remove container") {
@@ -68,19 +69,8 @@ pipeline{
         }
         stage('Deploy to container'){
             steps{
-                sh 'docker run -d --name chatbot -p 3000:3000 NotHarshhaa/chatbot:latest'
+                sh 'docker run -d --name chatbot -p 3000:3000 manideepm777/chatbot:${BUILD_NUMBER}'
             }
         }
-        stage('Deploy to kubernetes'){
-            steps{
-                withAWS(credentials: 'aws-key', region: 'us-east-1'){
-                script{
-                    withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8s', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
-                       sh 'kubectl apply -f k8s/chatbot-ui.yaml'
-                  }
-                }
-            }
-        }
-        }
     }
-    }
+}
