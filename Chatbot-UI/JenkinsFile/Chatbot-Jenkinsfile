@@ -93,17 +93,17 @@ pipeline{
                 sh 'docker run -d --name chatbot -p 3000:3000 manideepm777/chatbot:${BUILD_NUMBER}'
             }
         }
-        stage('Deploy to kubernetes'){
-            steps{
-                withAWS(credentials: 'aws-key', region: 'us-east-1'){
-                    script{
-                        withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8s', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
-                            sh 'kubectl apply -f k8s/chatbot-ui.yaml'
-                        }
-                    }
-                }
-            }
-        }
+//         stage('Deploy to kubernetes'){
+//             steps{
+//                 withAWS(credentials: 'aws-key', region: 'us-east-1'){
+//                     script{
+//                         withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8s', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
+//                             sh 'kubectl apply -f k8s/chatbot-ui.yaml'
+//                         }
+//                     }
+//                 }
+//             }
+//         }
     }
     post {
         always {
