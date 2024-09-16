@@ -13,6 +13,17 @@ properties([
 pipeline {
     agent any
     stages {
+        stage('Notify Build Start') {
+            steps {
+                script {
+                    slackSend (
+                        channel: '#devops',
+                        color: 'warning',
+                        message: "*Build Started:* Job ${env.JOB_NAME} \n build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
+                    )
+                }
+            }
+        }
         stage('Checkout from Git') {
             steps {
                 git branch: 'main', url: 'https://github.com/ManideepM777/chatbotUI.git'

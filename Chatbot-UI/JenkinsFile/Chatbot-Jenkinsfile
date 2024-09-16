@@ -77,11 +77,12 @@ pipeline{
                 }
             }
         }
-        stage("TRIVY"){
-            steps{
-                sh "trivy image manideepm777/chatbot:${BUILD_NUMBER} > trivy.json"
+        stage("TRIVY") {
+            steps {
+                sh "trivy image --scanners vuln --format json -o trivy.json manideepm777/chatbot:${BUILD_NUMBER}"
             }
         }
+
         stage ("Remove container") {
             steps{
                 sh "docker stop chatbot | true"
