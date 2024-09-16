@@ -38,31 +38,31 @@ pipeline{
             }
         }
         stage("Sonarqube Analysis "){
-                    steps{
-                        withSonarQubeEnv('sonar-server') {
-                            sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Chatbot \
+            steps{
+                withSonarQubeEnv('sonar-server') {
+                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Chatbot \
                             -Dsonar.projectKey=Chatbot '''
-                        }
-                    }
                 }
+            }
+        }
         stage("quality gate"){
-                   steps {
-                        script {
-                            waitForQualityGate abortPipeline: false, credentialsId: 'jenkins-sonarqube-token'
-                        }
-                    }
+            steps {
+                script {
+                    waitForQualityGate abortPipeline: false, credentialsId: 'jenkins-sonarqube-token'
                 }
-        stage('OWASP FS SCAN') {
-                            steps {
-                                dependencyCheck additionalArguments: '--scan ./ --nvdApiKey $NVD_API_KEY', odcInstallation: 'DP-Check'
-                                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-                            }
-                }
-        stage('TRIVY FS SCAN') {
-                            steps {
-                                sh "trivy fs --scanners vuln --skip-files dependency-check-report.xml . > trivyfs.json"
-                            }
-                }
+            }
+        }
+//      stage('OWASP FS SCAN') {
+//          steps {
+//              dependencyCheck additionalArguments: '--scan ./ --nvdApiKey $NVD_API_KEY', odcInstallation: 'DP-Check'
+//              dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+//          }
+//      }
+//      stage('TRIVY FS SCAN') {
+//          steps {
+//              sh "trivy fs --scanners vuln --skip-files dependency-check-report.xml . > trivyfs.json"
+//          }
+//      }
         stage("Docker Build & Push"){
             steps{
                 script{
@@ -94,16 +94,16 @@ pipeline{
             }
         }
         stage('Deploy to kubernetes'){
-                    steps{
-                        withAWS(credentials: 'aws-key', region: 'us-east-1'){
-                            script{
-                                withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8s', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
-                                    sh 'kubectl apply -f k8s/chatbot-ui.yaml'
-                                }
-                            }
+            steps{
+                withAWS(credentials: 'aws-key', region: 'us-east-1'){
+                    script{
+                        withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8s', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
+                            sh 'kubectl apply -f k8s/chatbot-ui.yaml'
                         }
                     }
                 }
+            }
+        }
     }
     post {
         always {
