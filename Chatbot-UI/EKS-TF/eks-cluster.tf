@@ -7,7 +7,7 @@ resource "aws_eks_cluster" "eks-cluster" {
     endpoint_public_access = true
   }
 
-  version = 1.30
+  version = 1.28
 
   depends_on = [aws_iam_role_policy_attachment.AmazonEKSClusterPolicy]
 }
