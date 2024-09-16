@@ -1,6 +1,6 @@
 variable "vpc-name" {}
 variable "igw-name" {}
-variable "rt-name2" {}
+variable "rt-name" {}
 variable "subnet-name" {}
 variable "subnet-name2" {}
 variable "security-group-name" {}
