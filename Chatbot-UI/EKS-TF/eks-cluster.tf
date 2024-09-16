@@ -4,27 +4,35 @@ resource "aws_eks_cluster" "eks-cluster" {
   vpc_config {
     subnet_ids         = [data.aws_subnet.subnet.id, aws_subnet.public-subnet2.id]
     security_group_ids = [data.aws_security_group.sg-default.id]
+    endpoint_public_access = true
   }
 
   version = 1.30
 
-  cluster_endpoint_public_access = true
-
-  # EKS Addons
-  cluster_addons = {
-    coredns = {
-      most_recent = true
-    }
-    eks-pod-identity-agent = {
-      most_recent = true
-    }
-    kube-proxy = {
-      most_recent = true
-    }
-    vpc-cni = {
-      most_recent = true
-    }
-  }
-
   depends_on = [aws_iam_role_policy_attachment.AmazonEKSClusterPolicy]
+}
+
+#addons
+resource "aws_eks_addon" "coredns" {
+  cluster_name = aws_eks_cluster.eks-cluster.name
+  addon_name   = "coredns"
+  resolve_conflicts = "OVERWRITE"
+}
+
+resource "aws_eks_addon" "kube_proxy" {
+  cluster_name = aws_eks_cluster.eks-cluster.name
+  addon_name   = "kube-proxy"
+  resolve_conflicts = "OVERWRITE"
+}
+
+resource "aws_eks_addon" "vpc_cni" {
+  cluster_name = aws_eks_cluster.eks-cluster.name
+  addon_name   = "vpc-cni"
+  resolve_conflicts = "OVERWRITE"
+}
+
+resource "aws_eks_addon" "eks_pod_identity_agent" {
+  cluster_name = aws_eks_cluster.eks-cluster.name
+  addon_name   = "eks-pod-identity-agent"
+  resolve_conflicts = "OVERWRITE"
 }
