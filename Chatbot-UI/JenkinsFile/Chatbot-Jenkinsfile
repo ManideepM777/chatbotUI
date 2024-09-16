@@ -88,7 +88,7 @@ pipeline{
                 GIT_USER_NAME = "ManideepM777"
             }
             steps {
-                dir('Chatbot-UI/K8s'){
+                dir('Chatbot-UI/k8s'){
                     withCredentials([string(credentialsId: 'githubcred', variable: 'GITHUB_TOKEN')]) {
                         sh '''
                             git config user.email "manideepmavillapalli@gmail.com"
